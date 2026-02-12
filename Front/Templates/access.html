@@ -1,85 +1,104 @@
-<html>
- <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   
-   
-   
-    <script>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — Ectoplasme</title>
 
-      var form_html_eleve = "<form>Identification élève<fieldset><p>nom  d'utilisateur<input type = 'text'> </input></p><p>mot de passe<input type = 'text'> </input></P></fieldset>click to close</form>"
-      
-      var form_html_prof = "<form>Identification Professeur<fieldset><p>nom  d'utilisateur<input type = 'text'> </input></p><p>mot de passe<input type = 'text'> </input></P></fieldset>click to close</form>"
-      
-      var form_html_admin = "<form>Identification Administrateur<fieldset><p>nom  d'utilisateur<input type = 'text'> </input></p><p>mot de passe<input type = 'text'> </input></P></fieldset>click to close</form>"
-
-      var open_eleve = false
-      
-      function eleve_open_close() {
-        if (open_eleve == false){
-          open_eleve = true
-          document.getElementById("eleve").innerHTML = form_html_eleve
-        }
-        else {
-          open_eleve = false 
-          document.getElementById("eleve").innerHTML = "eleve"
-        }
-      }
-      
-      var open_prof = false
-      
-      function prof_open_close() {
-        if (open_prof == false){
-          open_prof = true
-          document.getElementById("prof").innerHTML = form_html_prof
-        }
-        else {
-          open_prof = false 
-          document.getElementById("prof").innerHTML = "prof"
-        }
-      }
-      
-      var open_admin = false
-      
-      function admin_open_close() {
-        if (open_admin == false){
-          open_admin = true
-          document.getElementById("admin").innerHTML = form_html_admin
-        }
-        else {
-          open_admin = false 
-          document.getElementById("admin").innerHTML = "admin"
-        }
-      }
-        
-        
-    </script>
-   
-   
-   
-    <style>
-      
-      .profil { 
-        background-color: rgb(218, 221, 255);
-        margin: 10px;
-      }
-      
-    </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='connexion.css') }}">
 </head>
-  
-  
-  
+
 <body>
-  
-  <h1>bienvenue</h1>
-  
-  <div class = "profil" id = "eleve" onclick =  "eleve_open_close()" >eleve</div>
-  
-  <div class = "profil" id = "prof"  onclick =  "prof_open_close()" >prof</div>
-  
-  <div class = "profil" id = "admin" onclick =  "admin_open_close()">admin</div>
+  <main class="page">
+    <section class="card">
 
+      <header class="header">
+        <h1>Bienvenue</h1>
+        <p class="subtitle">Veuillez chosir votre profil de connexion</p>
+      </header>
+
+      <div class="profiles">
+
+        <button class="profil" id="btn-eleve" type="button" aria-expanded="false" aria-controls="panel-eleve">
+          Eleve
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel" id="panel-eleve" hidden>
+          <form class="form" method="POST" action="/connexion">
+            <input type="hidden" name="role" value="eleve">
+
+            <div class="field">
+              <label for="email-eleve">Adresse e-mail</label>
+              <input id="email-eleve" name="email" type="email" placeholder="p.nomXX@ejm.org" required>
+            </div>
+
+            <div class="field">
+              <label for="pwd-eleve">Mot de passe</label>
+              <input id="pwd-eleve" name="password" type="password" placeholder="••••••••" required>
+            </div>
+
+            <button class="btn" type="submit">Se connecter</button>
+          </form>
+        </div>
+
+        <button class="profil" id="btn-prof" type="button" aria-expanded="false" aria-controls="panel-prof">
+          Prof
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel" id="panel-prof" hidden>
+          <form class="form" method="POST" action="/connexion">
+            <input type="hidden" name="role" value="prof">
+
+            <div class="field">
+              <label for="email-prof">Adresse e-mail</label>
+              <input id="email-prof" name="email" type="email" placeholder="p.nom@ejm.net" required>
+            </div>
+
+            <div class="field">
+              <label for="pwd-prof">Mot de passe</label>
+              <input id="pwd-prof" name="password" type="password" placeholder="••••••••" required>
+            </div>
+
+            <button class="btn" type="submit">Se connecter</button>
+          </form>
+        </div>
+
+        <button class="profil" id="btn-admin" type="button" aria-expanded="false" aria-controls="panel-admin">
+          Admin
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel" id="panel-admin" hidden>
+          <form class="form" method="POST" action="/connexion">
+            <input type="hidden" name="role" value="admin">
+
+            <div class="field">
+              <label for="email-admin">Adresse e-mail</label>
+              <input id="email-admin" name="email" type="email" placeholder="admin@ejm.net" required>
+            </div>
+
+            <div class="field">
+              <label for="pwd-admin">Mot de passe</label>
+              <input id="pwd-admin" name="password" type="password" placeholder="••••••••" required>
+            </div>
+
+            <button class="btn" type="submit">Se connecter</button>
+          </form>
+        </div>
+
+      </div>
+
+      {% if error %}
+        <div class="alert" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <footer class="footer">
+        <small>Projet Ectoplasme</small>
+      </footer>
+
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='connexion.js') }}"></script>
 </body>
-
-
 </html>
+
