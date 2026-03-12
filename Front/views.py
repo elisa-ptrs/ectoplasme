@@ -50,8 +50,17 @@ def questionnaire():
     return render_template("questionnaire.html", questions=questions, questions_lang=questions_lang)
 
 
-@app.route('/resultats')
+@app.route('/resultats', methods=['GET'])
 def resultats():
+    solutions = request.form.get("reponses")
+    
     return render_template("resultats.html")
+
+
+@app.route('/leaderboard')
+def leaderboard():
+    if (request.args.get("lang") == "fr"):
+        eleves = [{'prenom': x['prenom'], 'nom': x['nom'], 'classe': query_db("SELECT niveau, numéro FROM " )}]
+
 
 app.run(debug=False)

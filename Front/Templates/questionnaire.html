@@ -23,7 +23,7 @@ const ldq = [{% for i in range(questions_lang | length) %}
 function generer_quiz() {
 let k = 0;
 while (k <= ldq.length + 1) {
-   document.write("<div id = 'question "+ ldq[k].id_question + "'><form> <h2>Question numero " + k+1  + "</h2><p>" + ldq[k].intitule + " </p><form>");
+   document.write("<div id = 'question "+ ldq[k].id_question + "'><form> <h2>Question numero " + (k + 1) + "</h2><p>" + ldq[k].intitule + " </p><form>");
    let ix = 0
    while (ix < ldq[k].liste_reponse.length) {
       let i = ldq[k].liste_reponse[ix]
