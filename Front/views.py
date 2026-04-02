@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import json
 from flask import Flask, render_template, request, redirect, url_for, g, session
@@ -11,8 +12,8 @@ app = Flask(
     static_url_path="/static"
 )
 app.secret_key = "ectoplasme_secret"
-
-DATABASE = "../Back/ectoplase_bdr.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE = os.path.join(BASE_DIR, "..", "Back", "ectoplase_bdr.db")
 
 def get_db():
     db = getattr(g, "_database", None)
