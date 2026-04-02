@@ -1,4 +1,5 @@
 import sqlite3
+import json
 from flask import Flask, render_template, request, redirect, url_for, g, session
 
 
@@ -39,12 +40,21 @@ def close_connection(exception):
         db.close()
 
 
-@app.route('/questionnaire', methods=['GET'])
+@app.route('/questionnaire')
 def questionnaire():
     quest_req = query_db("SELECT * FROM Questions")
     questions = [{'id_question': x['id_question'], 'liste_niveaux': x['liste_niveaux'], 'indice_reponse': x['indice_reponse']} for x in quest_req]
 
-    if (request.args.get("lang") == "fr"):
+    if request.form.get(""):
+        role = request.form.get("role")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        lang = request.form.get("lang", "fr")
+        
+        if not role or not email or not password or not lang:
+            return render_template("access.html", error="Champs manquants.", lang=lang)
+
+    if (request.form.get("lang", "fr")):
         questions_lang = [{'id_question': x['id_question'], 'intitule': x['intitule'], 'liste_reponses': x['liste_reponses'], 'explication': x['explication']} for x in query_db("SELECT * FROM Questions_FR")]
     else:
         questions_lang = [{'id_question': x['id_question'], 'intitule': x['intitule'], 'liste_reponses': x['liste_reponses'], 'explication': x['explication']} for x in query_db("SELECT * FROM Questions_EN")]
@@ -64,9 +74,13 @@ def leaderboard():
     eleves = []
     for x in query_db("SELECT * FROM Elèves"):
         classes = query_db("SELECT niveau, numéro FROM Classes JOIN ON Elèves WHERE Classes.id_classe = Elèves.id_classe")
-        eleves += {'prenom': x['prenom'], 'nom': x['nom'], 'classe': classes['niveau'] + ' ' + classes['numéro']}
-    print(eleves)
-    return render_template("leaderboard.html", eleves=eleves)
+        eleves += {'prenom': x['prenom'], 'nom': x['nom'], 'classe': classes['niveau'] + ' ' + classes['numéro'], 'meilleur_score': x['meilleur_score']}
+    json_eleves = json.dump(eleves)
+    return render_template("leaderboard.html", eleves=eleves, json_eleves = json_eleves)
+
+@app.route('/dashboard_admin')#
+def dashboard_admin():
+    data = query_db()
 
 @app.get("/connexion")
 def connexion_get():
