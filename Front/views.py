@@ -1,4 +1,5 @@
 import sqlite3
+import json
 from flask import Flask, render_template, request, redirect, url_for, g, session
 
 
@@ -74,7 +75,12 @@ def leaderboard():
     for x in query_db("SELECT * FROM Elèves"):
         classes = query_db("SELECT niveau, numéro FROM Classes JOIN ON Elèves WHERE Classes.id_classe = Elèves.id_classe")
         eleves += {'prenom': x['prenom'], 'nom': x['nom'], 'classe': classes['niveau'] + ' ' + classes['numéro'], 'meilleur_score': x['meilleur_score']}
-    return render_template("leaderboard.html", eleves=eleves)
+    json_eleves = json.dump(eleves)
+    return render_template("leaderboard.html", eleves=eleves, json_eleves = json_eleves)
+
+@app.route('/dashboard_admin')#
+def dashboard_admin():
+    data = query_db()
 
 @app.get("/connexion")
 def connexion_get():
