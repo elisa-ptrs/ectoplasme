@@ -24,10 +24,8 @@ def connexion_get():
 def set_lang(lang):
     if lang not in ["fr", "en"]:
         lang = "fr"
-
     session["lang"] = lang
     return redirect(url_for("connexion_get"))
-
 
 @app.post("/connexion")
 def connexion_post():
@@ -35,15 +33,10 @@ def connexion_post():
     email = request.form.get("email")
     password = request.form.get("password")
     lang = request.form.get("lang", "fr")
-
     session["lang"] = lang
-
     if not role or not email or not password:
         return render_template("access.html", error="Champs manquants.", lang=lang)
-
     return redirect(url_for("questionnaire"))
-
-
 
 @app.get("/")
 def index():
@@ -53,58 +46,73 @@ def index():
 def questionnaire():
     quest_req = back.query_db("SELECT * FROM Questions")
     questions = [{'id_question': x['id_question'], 'liste_niveaux': x['liste_niveaux'], 'indice_reponse': x['indice_reponse']} for x in quest_req]
-
-    if request.form.get(""):
-        role = request.form.get("role")
-        email = request.form.get("email")
-        password = request.form.get("password")
-        lang = request.form.get("lang", "fr")
-        
-        if not role or not email or not password or not lang:
-            return render_template("access.html", error="Champs manquants.", lang=lang)
-
-    if (request.form.get("lang", "fr")):
-        questions_lang = [{'id_question': x['id_question'], 'intitule': x['intitule'], 'liste_reponses': x['liste_reponses'], 'explication': x['explication']} for x in back.query_db("SELECT * FROM Questions_FR")]
+    lang = session.get("lang", "fr")
+    if lang == "fr":
+        questions_lang = [{'id_question': x['id_question'], 'intitule': x['intitule'], 'liste_reponses': [r.strip() for r in x['liste_reponses'].split(',')], 'explication': x['explication']} for x in back.query_db("SELECT * FROM Questions_FR")]
     else:
-        questions_lang = [{'id_question': x['id_question'], 'intitule': x['intitule'], 'liste_reponses': x['liste_reponses'], 'explication': x['explication']} for x in back.query_db("SELECT * FROM Questions_EN")]
-    print(questions)
-    print(questions_lang)
+        questions_lang = [{'id_question': x['id_question'], 'intitule': x['intitule'], 'liste_reponses': [r.strip() for r in x['liste_reponses'].split(',')], 'explication': x['explication']} for x in back.query_db("SELECT * FROM Questions_EN")]
+
     return render_template("questionnaire.html", questions=questions, questions_lang=questions_lang)
 
 
-@app.route('/resultats', methods=['GET'])
+@app.route('/resultats', methods=['POST'])
 def resultats():
-    solutions = request.form.get("reponses")
-    
-    return render_template("resultats.html")
+    lang = session.get("lang", "fr")
+    reponses_json = request.form.get("reponses", "{}")
+    try:
+        reponses = json.loads(reponses_json)
+    except json.JSONDecodeError:
+        reponses = {}
+
+    questions = back.query_db("SELECT id_question, indice_reponse FROM Questions")
+    total = len(questions)
+    score = 0
+    for q in questions:
+        if reponses.get(str(q["id_question"])) == q["indice_reponse"] - 1:
+            score += 1
+
+    pourcentage = round((score / total * 100) if total else 0)
+    return render_template("resultats.html", score=score, total=total, pourcentage=pourcentage, meilleur_score=score, lang=lang)
 
 
 @app.route('/leaderboard')
 def leaderboard():
-    eleves = []
-    for x in back.query_db("SELECT * FROM Elèves"):
-        classes = back.query_db("SELECT niveau, numéro FROM Classes JOIN ON Elèves WHERE Classes.id_classe = Elèves.id_classe")
-        eleves += {'prenom': x['prenom'], 'nom': x['nom'], 'classe': classes['niveau'] + ' ' + classes['numéro'], 'meilleur_score': x['meilleur_score']}
-    json_eleves = json.dump(eleves)
-    return back.render_template("leaderboard.html", classes=classes, eleves=eleves, json_eleves = json_eleves)
+    lang = session.get("lang", "fr")
+    eleves = back.query_db("""
+        SELECT e.prenom, e.nom, c.niveau, c.numéro,
+               COALESCE(e.meilleur_score, 0) AS meilleur_score,
+               COALESCE(e.nb_tentatives, 0)  AS nb_tentatives
+        FROM "Élèves" e
+        JOIN Classes c ON e.id_classe = c.id_classe
+        ORDER BY meilleur_score DESC
+    """)
+    return render_template("leaderboard.html", eleves=eleves, lang=lang)
+
 
 @app.route('/dashboard_prof')
 def dashboard_prof():
-    eleves = []
-    for x in back.query_db("SELECT * FROM Elèves"):
-        classes = back.query_db("SELECT niveau, numéro FROM Classes JOIN ON Elèves WHERE Classes.id_classe = Elèves.id_classe")
-        eleves += {'prenom': x['prenom'], 'nom': x['nom'], 'classe': classes['niveau'] + ' ' + classes['numéro'], 'meilleur_score': x['meilleur_score']}
-    json_eleves = json.dump(eleves)
-    return render_template("leaderboard.html", eleves=eleves, json_eleves = json_eleves)
-    
+    lang = session.get("lang", "fr")
+    eleves = back.query_db("""
+        SELECT e.prenom, e.nom, c.niveau, c.numéro,
+               COALESCE(e.meilleur_score, 0) AS meilleur_score,
+               COALESCE(e.nb_tentatives, 0)  AS nb_tentatives
+        FROM "Élèves" e
+        JOIN Classes c ON e.id_classe = c.id_classe
+        ORDER BY meilleur_score DESC
+    """)
+    return render_template("dashboard_prof.html", eleves=eleves, lang=lang)
 
-@app.route('/dashboard_admin')#
+
+@app.route('/dashboard_admin')
 def dashboard_admin():
-    data = back.query_db()
+    lang = session.get("lang", "fr")
+    eleves = back.query_db('SELECT * FROM "Élèves"')
+    return render_template("leaderboard.html", eleves=eleves, lang=lang)
 
 
 @app.route("/eleves")
 def eleves():
-    return "Page élèves "
+    return "Page élèves"
 
-app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)
